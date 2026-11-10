@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Werk Room Simulator</title>
+<link href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#14051b;--pan:#241030;--line:#4d2364;--ink:#fbe9f6;--mut:#c9a2c4;--pink:#ff3fa4;--gold:#ffcf4a}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 50% -10%,#3a0f4d,var(--bg) 60%) fixed;color:var(--ink);font-family:"DM Sans",system-ui,sans-serif;line-height:1.5;padding:0 14px 60px}
+main{max-width:980px;margin:0 auto}
+h1,h2,.big{font-family:"Bowlby One",Impact,sans-serif;font-weight:400}
+h1{font-size:clamp(2rem,7vw,3.4rem);color:var(--pink);margin:32px 0 4px;text-shadow:0 0 24px #ff3fa455}
+h2{font-size:1.5rem;margin:0 0 10px;color:var(--gold)}
+.big{font-size:clamp(1.5rem,5vw,2.4rem);color:var(--pink);margin:6px 0}
+.sub,.chal,.step{color:var(--mut)}
+.pan{background:var(--pan);border:2px solid var(--line);border-radius:22px;padding:20px;margin-bottom:16px}
+button,select{font:inherit}
+button{font-weight:700;border:0;border-radius:999px;padding:11px 24px;background:linear-gradient(135deg,var(--pink),#b5179e);color:#fff;cursor:pointer}
+button.alt{background:transparent;border:2px solid var(--line);color:var(--ink)}
+button:disabled{opacity:.4}
+select,input[type=text]{padding:9px 14px;border-radius:999px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+:focus-visible,label:focus-within{outline:3px solid var(--gold);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+.cards{display:flex;flex-wrap:wrap;gap:16px;justify-content:center;margin:12px 0}
+.qc{width:112px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.nm{font-weight:700;font-size:.9rem;line-height:1.2}
+.av{position:relative;width:84px;height:84px;border-radius:50%;border:3px solid var(--gold);background:linear-gradient(135deg,#7b2cbf,var(--pink));overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.av.lg{width:150px;height:150px;font-size:2rem}.av.sm{width:30px;height:30px;border-width:2px;font-size:.65rem}
+.roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.rq{cursor:pointer;border:2px solid var(--line);border-radius:18px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;opacity:.6}
+.rq.on{opacity:1;border-color:var(--pink);background:#ff3fa418}
+.rq input{position:absolute;opacity:0}
+.hero{text-align:center;padding:10px 0}
+.hero .cards{margin-top:16px}
+.grp{margin:14px 0;text-align:center}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 10px;border-radius:999px;background:#555;color:#fff;letter-spacing:.03em}
+h3.tag{font-size:.9rem;padding:4px 16px;margin:0}
+.song{font-family:"Bowlby One",Impact,sans-serif;font-size:1.3rem;color:var(--gold)}
+.pSLAYED,.pWIN,.pRUNNER{background:var(--gold);color:#2a0a24}.pGREAT,.pHIGH{background:#2fbf7a;color:#032214}.pGOOD{background:#2aa9c9;color:#02202a}
+.pALRIGHT,.pSAFE,.p3RD,.p4TH{background:#6d5a78;color:#fff}.pBAD,.pLOW{background:#e8803a;color:#2a1000}.pFLOPPED,.pBTM{background:#d62d5f;color:#fff}
+.pELIM{background:#000;color:#fff;border:1px solid #666}.pWINNER{background:var(--pink);color:#fff}
+.scroll{overflow-x:auto}
+table{border-collapse:separate;border-spacing:3px;font-size:.8rem}
+th{color:var(--mut);padding:2px 4px;font-weight:700;white-space:nowrap;line-height:1.2}th small{font-weight:400}
+td.n{white-space:nowrap;font-weight:700;padding-right:10px}td.n .av{display:inline-flex;vertical-align:middle;margin-right:8px}
+td.c{text-align:center;padding:8px 4px;border-radius:8px;font-weight:700;min-width:64px}
+</style>
+</head>
+<body>
+<main>
+<h1>Werk Room Simulator</h1>
+<section id="setup" class="pan">
+  <h2>Choose your cast</h2>
+  <div class="row"><b id="count"></b><button class="alt" id="all">Select all</button><button class="alt" id="rand">Random 12</button><button class="alt" id="none">Clear</button></div>
+  <div class="roster" id="roster"></div>
+  <div class="row"><input type="text" id="newname" placeholder="Add your own queen" maxlength="28" aria-label="Queen name"><button class="alt" id="add">Add queen</button></div>
+  <div class="row"><label>Finale size <select id="fin"><option value="3">Top 3</option><option value="4">Top 4</option></select></label>
+  <label>Finale type <select id="ft"><option value="top2">Top 2 finale</option><option value="tourney">Lip sync for the crown</option></select></label></div>
+  <p class="sub">Pick 6 to 16 queens. Put photos in an <code>images</code> folder named after each queen, like <code>images/anita-dazzle.png</code>.</p>
+  <button id="start">Start season</button>
+</section>
+<section id="game" hidden>
+  <div class="pan"><div class="step" id="step"></div><div id="screen"></div></div>
+  <div class="row"><button id="go">Continue</button></div>
+</section>
+</main>
+<script>
+const $=i=>document.getElementById(i),pick=a=>a[Math.floor(Math.random()*a.length)],avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+const bell=()=>(Math.random()+Math.random()+Math.random()-1.5)*14;
+const LV=[["SLAYED",85],["GREAT",73],["GOOD",62],["ALRIGHT",51],["BAD",40],["FLOPPED",-99]],lv=s=>LV.find(l=>s>=l[1])[0],lvi=l=>LV.findIndex(x=>x[0]===l);
+const STATS=["comedy","acting","design","dance","singing","runway","lipsync"];
+const CH=[
+{n:"The Rusical",k:"Rusical",s:["acting","singing","dance"],d:"The queens star in an original musical."},
+{n:"Acting Challenge",k:"Acting",s:["acting"],d:"A scripted scene with big feelings and bigger wigs."},
+{n:"Design Challenge",k:"Design",s:["design"],d:"The queens build a look from unusual materials."},
+{n:"Improv Game Show",k:"Improv",s:["comedy","acting"],d:"Quick wit and sharp characters win the room."},
+{n:"Comedy Roast",k:"Roast",s:["comedy"],d:"Insults are compliments tonight."},
+{n:"Talent Show",k:"Talent",s:["singing","dance","comedy"],d:"Every queen brings her own number."},
+{n:"Girl Group Challenge",k:"Girl Group",s:["singing","dance"],d:"Write, rehearse and perform a pop single."},
+{n:"Makeover Challenge",k:"Makeover",s:["design","comedy"],d:"Transform a civilian into a drag sister."},
+{n:"Commercial Shoot",k:"Commercial",s:["acting","comedy"],d:"Sell a very silly product with a straight face."}];
+const RW=["Glitter and Glamour","Neon Nightmare","Pearl Couture","Disco Inferno","Red Carpet Royalty","Garden of Eden","Sci-Fi Siren","Black and Gold Gala","Camp Couture","Fierce Florals"];
+const SONGS=["Glitter in the Dark","Heels on Fire","Crown Me Tonight","Sashay Anthem","Neon Heartbeat","Boulevard of Sequins","Wig Snatched Love","Disco Tears"];
+const NAMES=["Anita Dazzle","Betty Bonbon","Crystal Clearance","Dolly Voltage","Electra Fyin","Fauna Fatale","Gigi Gilded","Hazel Nutz","Iris Eclipse","Jade Rouge","Kandy Kane Kong","Lola Lollipop","Mona Lisa Mayhem","Nova Nightshade","Opal Illusion","Peaches Parfait"];
+/* Every win lowers the odds of another; every bottom 2 raises the odds of landing there and of going home */
+const WP=[0,3,7,14,24,40],BP=[0,4,10,20,35,50],LP=[0,8,24,75,120];
+const mk=n=>{const s={};STATS.forEach(k=>s[k]=Math.round(35+Math.random()*60));return{name:n,s,sel:false}};
+let pool=NAMES.map(mk);pool.slice(0,12).forEach(q=>q.sel=true);
+let cast,hist,S,idx,ep,over,FIN,FT,epNo;
+
+const av=(q,c="")=>`<div class="av ${c}"><span>${ini(q.name)}</span><img src="images/${slug(q.name)}.png" alt="" onerror="this.remove()"></div>`;
+const card=(q,t)=>`<div class="qc">${av(q)}<div class="nm">${esc(q.name)}</div>${t?`<span class="tag p${t}">${t}</span>`:""}</div>`;
+const cards=(l,t)=>`<div class="cards">${l.map(q=>card(q,t)).join("")}</div>`;
+const groups=l=>LV.map(([n])=>{const g=l.filter(o=>o.l===n);return g.length?`<div class="grp"><h3 class="tag p${n}">${n}</h3>${cards(g.map(o=>o.q))}</div>`:""}).join("");
+
+function roster(){
+  $("roster").innerHTML="";
+  pool.forEach(q=>{const l=document.createElement("label");l.className="rq"+(q.sel?" on":"");
+    l.innerHTML=`<input type="checkbox" ${q.sel?"checked":""}>${av(q)}<span class="nm">${esc(q.name)}</span>`;
+    l.querySelector("input").onchange=e=>{q.sel=e.target.checked;roster()};$("roster").appendChild(l)});
+  const n=pool.filter(q=>q.sel).length;$("count").textContent=n+" selected";$("start").disabled=n<6||n>16;
+}
+$("all").onclick=()=>{pool.forEach((q,i)=>q.sel=i<16);roster()};
+$("none").onclick=()=>{pool.forEach(q=>q.sel=false);roster()};
+$("rand").onclick=()=>{pool.forEach(q=>q.sel=false);[...pool].sort(()=>Math.random()-.5).slice(0,12).forEach(q=>q.sel=true);roster()};
+const addQ=()=>{const v=$("newname").value.trim();if(!v)return;const q=mk(v);q.sel=pool.filter(x=>x.sel).length<16;pool.push(q);$("newname").value="";roster()};
+$("add").onclick=addQ;$("newname").onkeydown=e=>{if(e.key==="Enter")addQ()};
+
+$("start").onclick=()=>{
+  FIN=+$("fin").value;FT=$("ft").value;cast=pool.filter(q=>q.sel).map(q=>({...q,alive:true,w:0,h:0,b:0}));
+  hist=[];ep=0;over=false;$("setup").hidden=true;$("game").hidden=false;nextEp();
+};
+$("go").onclick=()=>{
+  if(idx<S.length-1){idx++;show()}
+  else if(over){$("game").hidden=true;$("setup").hidden=false;roster()}
+  else nextEp();
+};
+function nextEp(){
+  S=[];idx=0;ep++;epNo=ep;const al=cast.filter(q=>q.alive);
+  S.push(["Remaining queens",`<div class="hero"><div class="big">${al.length} queens remain</div>${cards(al)}</div>`]);
+  al.length<=FIN?finale(al):normal(al);show();
+}
+function show(){
+  $("step").textContent=`Episode ${epNo} · ${idx+1} of ${S.length}`;
+  $("screen").innerHTML=`<h2>${S[idx][0]}</h2>${S[idx][1]}`;
+  $("go").textContent=idx<S.length-1?"Continue":over?"New season":"Next episode";
+  window.scrollTo(0,0);
+}
+function perf(al,stats){return al.map(q=>{const c=avg(stats.map(k=>q.s[k]))+bell(),r=q.s.runway+bell();return{q,c,r,cl:lv(c),rl:lv(r),sc:c*.7+r*.3}})}
+function perfScreens(sc,rc){
+  S.push(["Challenge performances",groups(sc.map(o=>({q:o.q,l:o.cl})))]);
+  S.push(["Runway performances",`<div class="hero"><p class="chal">Runway category</p><div class="big">${rc}</div></div>`+groups(sc.map(o=>({q:o.q,l:o.rl})))]);
+}
+function lip(a,b,title,pen,text){
+  const song=pick(SONGS),m=[a,b].map(q=>{const p=q.s.lipsync+bell()*1.3;return{q,l:lv(p),f:p-(pen?LP[Math.min(q.b,4)]:0)}});
+  const w=m[0].f>=m[1].f?m[0]:m[1],l=m[0]===w?m[1]:m[0];
+  S.push([title,`<div class="hero"><p class="chal">Lip sync song</p><div class="song">“${song}”</div><div class="cards">${m.map(o=>card(o.q,o.l)).join("")}</div></div>`]);
+  const body=pen?`<p>${esc(w.q.name)} stays.</p><div class="big">${esc(l.q.name)}</div><p>Sashay away.</p>`+(lvi(l.l)<lvi(w.l)?`<p class="chal">A strong lip sync, but her history in the bottom caught up with her.</p>`:""):`<p>${esc(w.q.name)}</p><div class="big">${text}</div>`;
+  S.push([title+" results",`<div class="hero">${av(pen?l.q:w.q,"lg")}${body}</div>`]);
+  return{w:w.q,l:l.q};
+}
+function normal(al){
+  const n=al.length,ch=pick(CH),rc=pick(RW),sc=perf(al,ch.s),nH=n>=6?2:1,nL=n>=8?2:n>=5?1:0;
+  S.push(["Challenge announcement",`<div class="hero"><div class="big">${ch.n}</div><p>${ch.d}</p><p class="chal">Judged on: ${ch.s.join(", ")}</p></div>`]);
+  perfScreens(sc,rc);
+  const T=o=>o.sc-WP[Math.min(o.q.w,5)],B=o=>o.sc-BP[Math.min(o.q.b,5)];
+  const win=[...sc].sort((a,b)=>T(b)-T(a))[0];let rest=sc.filter(o=>o!==win).sort((a,b)=>B(a)-B(b));
+  const btm=rest.slice(0,2),low=rest.slice(2,2+nL);rest=rest.slice(2+nL).sort((a,b)=>T(b)-T(a));
+  const high=rest.slice(0,nH),safe=rest.slice(nH);
+  if(safe.length)S.push(["Safe queens announced",`<div class="hero"><p>These queens are safe.</p>${cards(safe.map(o=>o.q),"SAFE")}</div>`]);
+  S.push(["Challenge results",`<div class="hero">${card(win.q,"WIN")}</div><div class="grp"><h3 class="tag pHIGH">HIGH</h3>${cards(high.map(o=>o.q))}</div>`+(low.length?`<div class="grp"><h3 class="tag pLOW">LOW</h3>${cards(low.map(o=>o.q))}</div>`:"")+`<div class="grp"><h3 class="tag pBTM">BOTTOM 2</h3>${cards(btm.map(o=>o.q))}</div>`]);
+  const r=lip(btm[0].q,btm[1].q,"Bottom 2 lip sync",true);
+  const rec={ep,k:ch.k,place:{},sc:{}};
+  sc.forEach(o=>{rec.place[o.q.name]="SAFE";rec.sc[o.q.name]=o.sc});
+  high.forEach(o=>{rec.place[o.q.name]="HIGH";o.q.h++});low.forEach(o=>rec.place[o.q.name]="LOW");
+  btm.forEach(o=>{rec.place[o.q.name]="BTM";o.q.b++});rec.place[win.q.name]="WIN";win.q.w++;
+  rec.place[r.l.name]="ELIM";r.l.alive=false;hist.push(rec);
+  S.push(["Track record",track()]);
+}
+function finale(al){
+  const n=al.length,rc="Crown Couture";
+  S.push(["Finale",`<div class="hero"><div class="big">The grand finale</div><p>${FT==="top2"?"The judges will choose two queens to lip sync for the crown.":"The queens lip sync in a tournament for the crown."}</p></div>`]);
+  const sc=perf(al,["dance","singing","comedy","acting"]);perfScreens(sc,rc);
+  sc.forEach(o=>o.f=o.sc+o.q.w*3+o.q.h*1.2-o.q.b*1.5+bell());sc.sort((a,b)=>b.f-a.f);
+  const rec={ep,k:"Finale",place:{},sc:{}};let r;
+  if(FT==="top2"){
+    S.push(["Finalists chosen",`<div class="hero"><p>The judges choose two queens.</p>${cards(sc.slice(0,2).map(o=>o.q))}</div>`]);
+    r=lip(sc[0].q,sc[1].q,"Lip sync for the crown",false,"wins the crown!");
+    sc.slice(2).forEach((o,i)=>rec.place[o.q.name]=i?"4TH":"3RD");
+  }else{
+    let a,b;
+    if(n===4){const p=[...sc].sort(()=>Math.random()-.5);a=lip(p[0].q,p[1].q,"Semifinal 1",false,"advances!");b=lip(p[2].q,p[3].q,"Semifinal 2",false,"advances!");
+      [a.l,b.l].forEach(q=>rec.place[q.name]="3RD");r=lip(a.w,b.w,"Lip sync for the crown",false,"wins the crown!");}
+    else{a=lip(sc[1].q,sc[2].q,"Semifinal",false,"advances to face the top seed!");rec.place[a.l.name]="3RD";r=lip(a.w,sc[0].q,"Lip sync for the crown",false,"wins the crown!");}
+  }
+  rec.place[r.w.name]="WINNER";rec.place[r.l.name]="RUNNER";sc.forEach(o=>rec.sc[o.q.name]=o.f);hist.push(rec);over=true;
+  S.push(["Your winner",`<div class="hero">${av(r.w,"lg")}<div class="big">${esc(r.w.name)}</div><p>is the winner of the season. Runner-up: ${esc(r.l.name)}.</p></div>`]);
+  S.push(["Track record",track()]);
+}
+function track(){
+  const last=hist[hist.length-1],R={WINNER:0,WIN:0,HIGH:1,RUNNER:1,SAFE:2,LOW:3,"3RD":3,BTM:4,"4TH":4,ELIM:5};
+  const el=q=>{for(let i=hist.length-1;i>=0;i--)if(hist[i].place[q.name]==="ELIM")return i;return -1};
+  const rk=q=>last.place[q.name]?R[last.place[q.name]]:10+hist.length-el(q);
+  const rows=[...cast].sort((a,b)=>rk(a)-rk(b)||(last.sc[b.name]||0)-(last.sc[a.name]||0));
+  return`<div class="scroll"><table><thead><tr><th></th>${hist.map(r=>`<th>Ep ${r.ep}<br><small>${r.k}</small></th>`).join("")}</tr></thead><tbody>`+
+  rows.map(q=>`<tr><td class="n">${av(q,"sm")}${esc(q.name)}</td>${hist.map(r=>{const p=r.place[q.name];return`<td class="c ${p?"p"+p:""}">${p||""}</td>`}).join("")}</tr>`).join("")+"</tbody></table></div>";
+}
+roster();
+</script>
+</body>
+</html>
