@@ -27,7 +27,7 @@ select,input[type=text]{padding:9px 14px;border-radius:999px;border:2px solid va
 .qc{width:112px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
 .nm{font-weight:700;font-size:.9rem;line-height:1.2}
 .av{position:relative;width:84px;height:84px;border-radius:50%;border:3px solid var(--gold);background:linear-gradient(135deg,#7b2cbf,var(--pink));overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
-.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0}
 .av.lg{width:150px;height:150px;font-size:2rem}.av.sm{width:30px;height:30px;border-width:2px;font-size:.65rem}
 .roster{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
 .rq{cursor:pointer;border:2px solid var(--line);border-radius:18px;padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;opacity:.6}
@@ -99,7 +99,7 @@ const WP=[0,3,7,14,24,40],BP=[0,4,10,20,35,50],LP=[0,8,24,75,120],WB=[0,8,28,60,
 const QUEENS=[
 {name:"Bebe Zahara Benet",img:"https://i.pinimg.com/736x/a5/9a/e2/a59ae2d019265c10b1e9083c64eb90d9.jpg",s:{comedy:3.75,acting:3.5,design:3.5,dance:4,singing:4,runway:3.5,lipsync:4}},
 {name:"Nina Flowers",img:"https://i.pinimg.com/736x/76/63/5b/76635be08655db2cb9d8d75ea38f9a53.jpg",s:{comedy:3,acting:3.67,design:3.67,dance:4,singing:4,runway:3.67,lipsync:2.5}},
-{name:"Rebecca Glasscock",img:"https://i.pinimg.com/736x/ef/db/db/efdbdba64273553d6450924ce82b830f.jpg",s:{comedy:2.5,acting:2.5,design:2.67,dance:4,singing:4,runway:2.67,lipsync:4.67}},
+{name:"Rebecca GLasscock",img:"https://i.pinimg.com/736x/ef/db/db/efdbdba64273553d6450924ce82b830f.jpg",s:{comedy:2.5,acting:2.5,design:2.67,dance:4,singing:4,runway:2.67,lipsync:4.67}},
 {name:"Shannel",img:"https://i.pinimg.com/736x/a4/97/57/a49757c382269b57b3180f823a8f931d.jpg",s:{comedy:3.43,acting:2.67,design:3.63,dance:3.5,singing:3.5,runway:3.63,lipsync:3.9}},
 {name:"Ongina",img:"https://i.pinimg.com/736x/a4/97/57/a49757c382269b57b3180f823a8f931d.jpg",s:{comedy:4.5,acting:4.5,design:2.5,dance:3,singing:3,runway:2.5,lipsync:2.33}},
 {name:"Jade",img:"https://i.pinimg.com/736x/9e/2e/b0/9e2eb0942fb3fb16542da4258b1dca9a.jpg",s:{comedy:1.5,acting:1.5,design:3,dance:3,singing:3,runway:3,lipsync:2}},
@@ -115,7 +115,7 @@ let cast,hist,S,idx,ep,over,FIN,FT,epNo,FM,SHOWV,ASQ=[],used=[],lastK="",SG=0,SG
 const lab=p=>({TOP2:"TOP 2",HIGHTEAM:"HIGH TEAM"})[p]||p,thr=q=>avg(STATS.map(k=>q.s[k])),nextAs=()=>{if(!ASQ.length)ASQ=pool.filter(q=>!q.sel).sort(()=>Math.random()-.5);return ASQ.pop()};
 
 const urls=q=>[q.img,...["png","jpg","webp"].map(e=>"images/"+slug(q.name)+"."+e)].filter(Boolean);
-const av=(q,c="")=>{const u=urls(q);return`<div class="av ${c}"><span>${ini(q.name)}</span><img src="${esc(u[0])}" data-u="${esc(u.join("|"))}" referrerpolicy="no-referrer" alt="" onerror="imgErr(this)"></div>`};
+const av=(q,c="")=>{const u=urls(q);return`<div class="av ${c}"><span>${ini(q.name)}</span><img src="${esc(u[0])}" data-u="${esc(u.join("|"))}" referrerpolicy="no-referrer" alt="" onload="this.style.opacity=1" onerror="imgErr(this)"></div>`};
 function imgErr(i){const a=i.dataset.u.split("|"),n=+i.dataset.t||0;i.dataset.t=n+1;if(n<a.length)setTimeout(()=>{i.src=a[n]},n?0:600);else i.remove()}
 const card=(q,t)=>`<div class="qc">${av(q)}<div class="nm">${esc(q.name)}</div>${t?`<span class="tag p${t}">${lab(t)}</span>`:""}</div>`;
 const cards=(l,t)=>`<div class="cards">${l.map(q=>card(q,t)).join("")}</div>`;
