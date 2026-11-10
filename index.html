@@ -115,11 +115,12 @@ let cast,hist,S,idx,ep,over,FIN,FT,epNo,FM,SHOWV,ASQ=[],used=[],lastK="",SG=0,SG
 const lab=p=>({TOP2:"TOP 2",HIGHTEAM:"HIGH TEAM"})[p]||p,thr=q=>avg(STATS.map(k=>q.s[k])),nextAs=()=>{if(!ASQ.length)ASQ=pool.filter(q=>!q.sel).sort(()=>Math.random()-.5);return ASQ.pop()};
 
 const SRC={},urls=q=>[q.img,...["png","jpg","webp"].map(e=>"images/"+slug(q.name)+"."+e)].filter(Boolean);
-const av=(q,c="")=>{const s=SRC[q.name];return`<div class="av ${c}"><span>${ini(q.name)}</span>${s?`<img src="${esc(s)}" referrerpolicy="no-referrer" alt="">`:""}</div>`};
-const tryImg=u=>new Promise(r=>{const i=new Image(),t=setTimeout(()=>r(""),8000);i.referrerPolicy="no-referrer";i.onload=()=>{clearTimeout(t);r(u)};i.onerror=()=>{clearTimeout(t);r("")};i.src=u});
+pool.forEach(q=>SRC[q.name]=urls(q)[0]||"");
+const av=(q,c="")=>{const s=SRC[q.name];return`<div class="av ${c}"><span>${ini(q.name)}</span>${s?`<img src="${esc(s)}" alt="" onerror="this.remove()">`:""}</div>`};
+const tryImg=u=>new Promise(r=>{const i=new Image(),t=setTimeout(()=>r(""),8000);i.onload=()=>{clearTimeout(t);r(u)};i.onerror=()=>{clearTimeout(t);r("")};i.src=u});
+let rt;const refresh=()=>{clearTimeout(rt);rt=setTimeout(()=>{roster();if(!$("game").hidden)$("screen").innerHTML=`<h2>${S[idx][0]}</h2>${S[idx][1]}`},200)};
 async function resolveAll(){
-  await Promise.all(pool.map(async q=>{SRC[q.name]="";for(const u of urls(q)){const ok=await tryImg(u);if(ok){SRC[q.name]=ok;break}}}));
-  roster();if(!$("game").hidden)show();
+  await Promise.all(pool.map(async q=>{const first=SRC[q.name];let found="";for(const u of urls(q)){found=await tryImg(u);if(found)break}if(found!==first){SRC[q.name]=found;refresh()}}));
 }
 const card=(q,t)=>`<div class="qc">${av(q)}<div class="nm">${esc(q.name)}</div>${t?`<span class="tag p${t}">${lab(t)}</span>`:""}</div>`;
 const cards=(l,t)=>`<div class="cards">${l.map(q=>card(q,t)).join("")}</div>`;
