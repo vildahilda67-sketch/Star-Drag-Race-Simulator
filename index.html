@@ -49,11 +49,14 @@ table{border-collapse:separate;border-spacing:3px;font-size:.8rem}
 th{color:var(--mut);padding:2px 4px;font-weight:700;white-space:nowrap;line-height:1.2}th small{font-weight:400}
 td.n{white-space:nowrap;font-weight:700;padding-right:10px}td.n .av{display:inline-flex;vertical-align:middle;margin-right:8px}
 td.c{text-align:center;padding:8px 4px;border-radius:8px;font-weight:700;min-width:64px}
+#err{display:none;background:#8b0f1f;color:#fff;padding:10px 14px;border-radius:12px;margin:10px 0;font-weight:700}
+details.dbg{margin:10px 0;color:var(--mut)}details.dbg p{margin:6px 0}
 </style>
 </head>
 <body>
 <main>
 <h1>Drag Race Simulator</h1>
+<div id="err"></div>
 <section id="setup" class="pan">
   <h2>Choose your cast</h2>
   <div class="row"><b id="count"></b><button class="alt" id="all">Select all</button><button class="alt" id="rand">Random 12</button><button class="alt" id="none">Clear</button></div>
@@ -62,6 +65,7 @@ td.c{text-align:center;padding:8px 4px;border-radius:8px;font-weight:700;min-wid
   <div class="row"><label>Finale size <select id="fin"><option value="3">Top 3</option><option value="4">Top 4</option><option value="5">Top 5</option></select></label>
   <label>Finale type <select id="ft"><option value="top2">Top 2 finale</option><option value="tourney">Lip sync for the crown</option></select></label></div>
   <p class="sub" id="hint"></p><p class="sub">Names, image links and stats live in the <code>QUEENS</code> list at the top of the script. Unselected queens can appear as lip sync assassins.</p>
+  <details class="dbg"><summary>Image check</summary><div id="dbg">Checking...</div></details>
   <button id="start">Start season</button>
 </section>
 <section id="game" hidden>
@@ -70,6 +74,8 @@ td.c{text-align:center;padding:8px 4px;border-radius:8px;font-weight:700;min-wid
 </section>
 </main>
 <script>
+window.onerror=(m,u,l)=>{const e=document.getElementById("err");e.style.display="block";e.textContent="Script error: "+m+" (line "+l+")"};
+window.addEventListener("unhandledrejection",e=>window.onerror(String(e.reason),"",0));
 const $=i=>document.getElementById(i),pick=a=>a[Math.floor(Math.random()*a.length)],avg=a=>a.reduce((x,y)=>x+y,0)/a.length;
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""),ini=n=>n.split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
@@ -119,8 +125,10 @@ pool.forEach(q=>SRC[q.name]=urls(q)[0]||"");
 const av=(q,c="")=>{const s=SRC[q.name];return`<div class="av ${c}"><span>${ini(q.name)}</span>${s?`<img src="${esc(s)}" alt="" onerror="this.remove()">`:""}</div>`};
 const tryImg=u=>new Promise(r=>{const i=new Image(),t=setTimeout(()=>r(""),8000);i.onload=()=>{clearTimeout(t);r(u)};i.onerror=()=>{clearTimeout(t);r("")};i.src=u});
 let rt;const refresh=()=>{clearTimeout(rt);rt=setTimeout(()=>{roster();if(!$("game").hidden)$("screen").innerHTML=`<h2>${S[idx][0]}</h2>${S[idx][1]}`},200)};
+const TRY={};
 async function resolveAll(){
-  await Promise.all(pool.map(async q=>{const first=SRC[q.name];let found="";for(const u of urls(q)){found=await tryImg(u);if(found)break}if(found!==first){SRC[q.name]=found;refresh()}}));
+  await Promise.all(pool.map(async q=>{const first=SRC[q.name];let found="";TRY[q.name]=[];for(const u of urls(q)){const ok=await tryImg(u);TRY[q.name].push((ok?"OK: ":"FAILED: ")+u);if(ok){found=ok;break}}if(found!==first){SRC[q.name]=found;refresh()}}));
+  $("dbg").innerHTML="<p>This page is at: "+esc(location.href)+"</p>"+pool.map(q=>`<p><b>${esc(q.name)}</b>: ${SRC[q.name]?"image found":"NO IMAGE FOUND"}<br><small>${TRY[q.name].map(esc).join("<br>")}</small></p>`).join("");
 }
 const card=(q,t)=>`<div class="qc">${av(q)}<div class="nm">${esc(q.name)}</div>${t?`<span class="tag p${t}">${lab(t)}</span>`:""}</div>`;
 const cards=(l,t)=>`<div class="cards">${l.map(q=>card(q,t)).join("")}</div>`;
