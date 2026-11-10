@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Werk Room Simulator</title>
+<title>Drag Race Simulator</title>
 <link href="https://fonts.googleapis.com/css2?family=Bowlby+One&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#14051b;--pan:#241030;--line:#4d2364;--ink:#fbe9f6;--mut:#c9a2c4;--pink:#ff3fa4;--gold:#ffcf4a}
@@ -42,8 +42,8 @@ select,input[type=text]{padding:9px 14px;border-radius:999px;border:2px solid va
 h3.tag{font-size:.9rem;padding:4px 16px;margin:0}
 .song{font-family:"Bowlby One",Impact,sans-serif;font-size:1.3rem;color:var(--gold)}
 .pSLAYED,.pRUNNER{background:var(--gold);color:#2a0a24}.pGREAT{background:#2fbf7a;color:#032214}.pGOOD{background:#2aa9c9;color:#02202a}
-.pALRIGHT,.pSAFE,.p3RD,.p4TH{background:#6d5a78;color:#fff}.pBAD,.pLOW{background:#e8803a;color:#2a1000}.pFLOPPED,.pBTM{background:#d62d5f;color:#fff}
-.pWIN{background:#2347c6;color:#fff}.pHIGH{background:#8fd0ff;color:#06223a}.pELIM{background:#8b0f1f;color:#fff}.pWINNER{background:var(--pink);color:#fff}
+.pALRIGHT,.pSAFE,.p3RD,.p4TH,.p5TH{background:#6d5a78;color:#fff}.pBAD,.pLOW{background:#e8803a;color:#2a1000}.pFLOPPED,.pBTM{background:#d62d5f;color:#fff}
+.pWIN{background:#2347c6;color:#fff}.pHIGH,.pTOP2{background:#8fd0ff;color:#06223a}.pHIGHTEAM{background:#8ee8c2;color:#073b2a}.pELIM{background:#8b0f1f;color:#fff}.pWINNER{background:var(--pink);color:#fff}
 .scroll{overflow-x:auto}
 table{border-collapse:separate;border-spacing:3px;font-size:.8rem}
 th{color:var(--mut);padding:2px 4px;font-weight:700;white-space:nowrap;line-height:1.2}th small{font-weight:400}
@@ -53,14 +53,15 @@ td.c{text-align:center;padding:8px 4px;border-radius:8px;font-weight:700;min-wid
 </head>
 <body>
 <main>
-<h1>Werk Room Simulator</h1>
+<h1>Drag Race Simulator</h1>
 <section id="setup" class="pan">
   <h2>Choose your cast</h2>
   <div class="row"><b id="count"></b><button class="alt" id="all">Select all</button><button class="alt" id="rand">Random 12</button><button class="alt" id="none">Clear</button></div>
   <div class="roster" id="roster"></div>
-  <div class="row"><label>Finale size <select id="fin"><option value="3">Top 3</option><option value="4">Top 4</option></select></label>
+  <div class="row"><label>Format <select id="fm"><option value="reg">Regular</option><option value="allstars">All Stars</option><option value="assassin">Lip sync assassin</option><option value="swap">Format swap</option><option value="nonelim">Non-elimination</option><option value="bracket">Tournament</option></select></label><label><input type="checkbox" id="sv"> Show assassin votes</label></div>
+  <div class="row"><label>Finale size <select id="fin"><option value="3">Top 3</option><option value="4">Top 4</option><option value="5">Top 5</option></select></label>
   <label>Finale type <select id="ft"><option value="top2">Top 2 finale</option><option value="tourney">Lip sync for the crown</option></select></label></div>
-  <p class="sub">Pick 6 to 16 queens. Names, image links and stats live in the <code>QUEENS</code> list at the top of the script.</p>
+  <p class="sub" id="hint"></p><p class="sub">Names, image links and stats live in the <code>QUEENS</code> list at the top of the script. Unselected queens can appear as lip sync assassins.</p>
   <button id="start">Start season</button>
 </section>
 <section id="game" hidden>
@@ -76,24 +77,27 @@ const bell=()=>(Math.random()+Math.random()+Math.random()-1.5)*14;
 const LV=[["SLAYED",85],["GREAT",73],["GOOD",62],["ALRIGHT",51],["BAD",40],["FLOPPED",-99]],lv=s=>LV.find(l=>s>=l[1])[0],lvi=l=>LV.findIndex(x=>x[0]===l);
 const STATS=["comedy","acting","design","dance","singing","runway","lipsync"];
 const CH=[
-{n:"The Rusical",k:"Rusical",s:["acting","singing","dance"],d:"The queens star in an original musical."},
-{n:"Acting Challenge",k:"Acting",t:.7,s:["acting"],d:"A scripted scene with big feelings and bigger wigs."},
-{n:"Design Challenge",k:"Design",t:.25,nr:1,s:["design"],d:"The queens build a look from unusual materials."},
-{n:"Improv Game Show",k:"Improv",t:.25,s:["comedy","acting"],d:"Quick wit and sharp characters win the room."},
-{n:"Comedy Roast",k:"Roast",s:["comedy"],d:"Insults are compliments tonight."},
-{n:"Talent Show",k:"Talent",s:["singing","dance","comedy"],d:"Every queen brings her own number."},
-{n:"Girl Group Challenge",k:"Girl Group",t:1,s:["singing","dance"],d:"Write, rehearse and perform a pop single."},
-{n:"Makeover Challenge",k:"Makeover",nr:1,s:["design","comedy"],d:"Transform a civilian into a drag sister."},
-{n:"Commercial Shoot",k:"Commercial",s:["acting","comedy"],d:"Sell a very silly product with a straight face."}];
+{k:"Acting",s:["acting"],t:.7,subs:[{n:"Sitcom Scene",d:"A laugh-track sitcom with big reactions."},{n:"Soap Opera Showdown",d:"Betrayal, amnesia and dramatic slaps."},{n:"Horror Movie Parody",d:"Scream queens meet slasher clichés."},{n:"Courtroom Drama",d:"Objection! Bring the tears and the twists."}]},
+{k:"Design",s:["design"],nr:1,t:.25,subs:[{n:"Cardboard Box Couture",d:"Build a look from nothing but cardboard boxes."},{n:"Animal Print Fabric",d:"Create a look using only animal print fabric."},{n:"Thrift Store Treasure",d:"Remake secondhand finds into high fashion."},{n:"Candy Couture",d:"A sweet look made from candy and sugary supplies."}]},
+{k:"Improv",s:["comedy","acting"],t:.25,subs:[{n:"Improv Game Night",d:"Quick wit under pressure."},{n:"Talk Show Takeover",d:"Interview each other in character."},{n:"Pitch Meeting",d:"Sell an absurd movie idea on the spot."}]},
+{k:"Rusical",s:["acting","singing","dance"],subs:[{n:"Cinderella and the Midnight Mess-Up",d:"A fairy-tale musical gone hilariously wrong."},{n:"Rapunzel Lets Her Weave Down",d:"Long hair, big numbers, bigger egos."},{n:"Goldilocks and the Three Wigs",d:"Too hot, too cold, just right."}]},
+{k:"Snatch",ty:"Snatch Game",s:["comedy","acting"],subs:[{n:"The Snatch Game",d:"Every queen plays a celebrity and fights for the laughs."}]},
+{k:"Ball",s:["design","runway"],subs:[{n:"The Water Ball",d:"Three looks inspired by the sea.",cats:["Mermaid","Marine Animal","Deep Sea Design"]},{n:"The Garden Ball",d:"Three looks in full bloom.",cats:["Flower Power","Butterfly Effect","Enchanted Forest"]},{n:"The Fire and Ice Ball",d:"Three looks, two extremes.",cats:["Inferno","Frozen Elegance","Smoke and Steam"]},{n:"The Space Ball",d:"Three looks from beyond the stars.",cats:["Alien Royalty","Cosmic Couture","Astronaut Glam"]}]},
+{k:"Rumix",s:["dance","singing"],subs:[{n:"Rumix Music Video",d:"Write a verse and perform it in a remix video."},{n:"Rumix Rave",d:"Remix an anthem and own the dance floor."}]},
+{k:"Talent",ty:"Talent Show",s:["singing","dance","comedy"],subs:[{n:"Talent Show of Horrors",d:"Every queen brings her wildest number."},{n:"Variety Spectacular",d:"Sing it, dance it or joke it."}]},
+{k:"Girl Group",t:1,s:["singing","dance"],subs:[{n:"Pop Princess Anthem",d:"Write, rehearse and perform a pop single."},{n:"Disco Divas",d:"A glittering disco medley."},{n:"Rock Goddess Revue",d:"Loud, leathered and unforgettable."}]},
+{k:"Comedy",s:["comedy"],subs:[{n:"Stand-Up Showcase",d:"Five minutes, one mic, no mercy."},{n:"Comedy Roast",d:"Insults are compliments tonight."},{n:"One-Woman Show",d:"Every queen stars in her own tiny spectacle."},{n:"Sketch Night",d:"Write and perform a short comedy sketch."}]},
+{k:"Dance",s:["dance"],subs:[{n:"Choreography Showcase",d:"Learn a routine fast and sell every count."},{n:"Dance Battle",d:"Face off in a freestyle cypher."},{n:"Jazz Hands Spectacular",d:"Sparkle fingers required."}]}];
+const CELEBS=["Vivian Velour, a silver-screen legend","Brock Hammer, an action movie hero","Lady Marmalade Crumb, a celebrity chef","Sir Percival Pop, a boy-band heartthrob","Dolores Diamond, a country music queen","Zsa Zsa Zoom, a tabloid socialite","Chip Sterling, a late-night talk host","Gloria Glam, a pop diva","Dr. Helga Hush, a wellness guru","Tex Thunder, a rodeo superstar","Bianca Bling, a reality TV mogul","Professor Oddly, a quirky inventor","Coco Champagne, a fashion editor","Duke Dazzle, a Vegas crooner","Mama Rosa Rocket, a soap opera icon","Jazz Jolene, a jazz legend","Frankie Flash, a wrestling champion","Beatrix Bubbles, a royal influencer","Mystic Mavis, a TV psychic","Nigel Nitro, a racing hero"];
 const RW=["Glitter and Glamour","Neon Nightmare","Pearl Couture","Disco Inferno","Red Carpet Royalty","Garden of Eden","Sci-Fi Siren","Black and Gold Gala","Camp Couture","Fierce Florals"];
 const TN=["Team Glitter","Team Velvet","Team Neon"];
 const SONGS=["Glitter in the Dark","Heels on Fire","Crown Me Tonight","Sashay Anthem","Neon Heartbeat","Boulevard of Sequins","Wig Snatched Love","Disco Tears"];
-const WP=[0,3,7,14,24,40],BP=[0,4,10,20,35,50],LP=[0,8,24,75,120];
+const WP=[0,3,7,14,24,40],BP=[0,4,10,20,35,50],LP=[0,8,24,75,120],WB=[0,8,28,60,100,140],res=q=>WB[Math.min(q.w||0,5)]+3*Math.min(q.h||0,4)-LP[Math.min(q.b||0,4)];
 /* ===== YOUR CAST =====
    Each queen has a name, an image link (a full URL or a path like "images/anita.png"), and stats from 0 to 100.
    Leave img as "" to show her initials. Edit, delete or add queens freely. */
 const QUEENS=[
-{name:"Anita Dazzle",img:"",s:{comedy:88,acting:62,design:55,dance:70,singing:48,runway:82,lipsync:75}},
+{name:"Bebe Zahara Benet",img:"https://i.pinimg.com/736x/71/0d/fb/710dfbd1defcf1e742d84945dc0f96d7.jpg",s:{comedy:3.75,acting:3.5,design:3.5,dance:4,singing:4,runway:3.5,lipsync:4}},
 {name:"Betty Bonbon",img:"",s:{comedy:94,acting:85,design:50,dance:45,singing:60,runway:58,lipsync:52}},
 {name:"Crystal Clearance",img:"",s:{comedy:55,acting:60,design:92,dance:58,singing:45,runway:95,lipsync:68}},
 {name:"Dolly Voltage",img:"",s:{comedy:62,acting:70,design:60,dance:95,singing:72,runway:78,lipsync:93}},
@@ -108,13 +112,18 @@ const QUEENS=[
 {name:"Mona Lisa Mayhem",img:"",s:{comedy:76,acting:92,design:58,dance:52,singing:62,runway:66,lipsync:48}},
 {name:"Nova Nightshade",img:"",s:{comedy:45,acting:64,design:90,dance:70,singing:58,runway:92,lipsync:84}},
 {name:"Opal Illusion",img:"",s:{comedy:68,acting:60,design:54,dance:66,singing:94,runway:60,lipsync:72}},
-{name:"Peaches Parfait",img:"",s:{comedy:80,acting:68,design:72,dance:85,singing:50,runway:68,lipsync:86}}
+{name:"Peaches Parfait",img:"",s:{comedy:80,acting:68,design:72,dance:85,singing:50,runway:68,lipsync:86}},
+{name:"Quinn Quartz",img:"",s:{comedy:72,acting:74,design:66,dance:58,singing:68,runway:74,lipsync:64}},
+{name:"Raven Rhinestone",img:"",s:{comedy:50,acting:70,design:80,dance:76,singing:56,runway:86,lipsync:80}},
+{name:"Sasha Sapphire",img:"",s:{comedy:64,acting:56,design:60,dance:90,singing:74,runway:62,lipsync:88}},
+{name:"Tia Tinsel",img:"",s:{comedy:90,acting:66,design:52,dance:64,singing:70,runway:56,lipsync:56}}
 ];
 let pool=QUEENS.map(q=>({...q,sel:false}));pool.slice(0,12).forEach(q=>q.sel=true);
-let cast,hist,S,idx,ep,over,FIN,FT,epNo;
+let cast,hist,S,idx,ep,over,FIN,FT,epNo,FM,SHOWV,ASQ=[],used=[],lastK="",SG=0,SGep=0;
+const lab=p=>({TOP2:"TOP 2",HIGHTEAM:"HIGH TEAM"})[p]||p,thr=q=>avg(STATS.map(k=>q.s[k])),nextAs=()=>{if(!ASQ.length)ASQ=pool.filter(q=>!q.sel).sort(()=>Math.random()-.5);return ASQ.pop()};
 
 const av=(q,c="")=>`<div class="av ${c}"><span>${ini(q.name)}</span><img src="${esc(q.img||"images/"+slug(q.name)+".png")}" alt="" onerror="this.remove()"></div>`;
-const card=(q,t)=>`<div class="qc">${av(q)}<div class="nm">${esc(q.name)}</div>${t?`<span class="tag p${t}">${t}</span>`:""}</div>`;
+const card=(q,t)=>`<div class="qc">${av(q)}<div class="nm">${esc(q.name)}</div>${t?`<span class="tag p${t}">${lab(t)}</span>`:""}</div>`;
 const cards=(l,t)=>`<div class="cards">${l.map(q=>card(q,t)).join("")}</div>`;
 const groups=l=>LV.map(([n])=>{const g=l.filter(o=>o.l===n);return g.length?`<div class="grp"><h3 class="tag p${n}">${n}</h3>${cards(g.map(o=>o.q))}</div>`:""}).join("");
 
@@ -123,13 +132,22 @@ function roster(){
   pool.forEach(q=>{const l=document.createElement("label");l.className="rq"+(q.sel?" on":"");
     l.innerHTML=`<input type="checkbox" ${q.sel?"checked":""}>${av(q)}<span class="nm">${esc(q.name)}</span>`;
     l.querySelector("input").onchange=e=>{q.sel=e.target.checked;roster()};$("roster").appendChild(l)});
-  const n=pool.filter(q=>q.sel).length;$("count").textContent=n+" selected";$("start").disabled=n<6||n>16;
+  const n=pool.filter(q=>q.sel).length,fm=$("fm").value,fin=+$("fin").value;
+  let ok=n>=6&&n<=18&&n>fin,msg="Pick 6 to 18 queens.";
+  if(fm==="nonelim"){ok=n===8;msg="Non-elimination needs exactly 8 queens. The top 4 by stars reach the finale."}
+  else if(fm==="bracket"){ok=n===18;msg="Tournament needs exactly 18 queens. The semi finals play down to a final 4."}
+  else if(fm==="assassin"){ok=ok&&pool.length>n;msg+=" Leave at least one queen unselected to be an assassin."}
+  $("count").textContent=n+" selected";$("hint").textContent=msg;$("start").disabled=!ok;
 }
-$("all").onclick=()=>{pool.forEach((q,i)=>q.sel=i<16);roster()};
+["fin","fm"].forEach(i=>$(i).onchange=roster);
+$("all").onclick=()=>{pool.forEach((q,i)=>q.sel=i<18);roster()};
 $("none").onclick=()=>{pool.forEach(q=>q.sel=false);roster()};
-$("rand").onclick=()=>{pool.forEach(q=>q.sel=false);[...pool].sort(()=>Math.random()-.5).slice(0,12).forEach(q=>q.sel=true);roster()};
+$("rand").onclick=()=>{const fm=$("fm").value,k=fm==="nonelim"?8:fm==="bracket"?18:12;pool.forEach(q=>q.sel=false);[...pool].sort(()=>Math.random()-.5).slice(0,k).forEach(q=>q.sel=true);roster()};
 $("start").onclick=()=>{
-  FIN=+$("fin").value;FT=$("ft").value;cast=pool.filter(q=>q.sel).map(q=>({...q,alive:true,w:0,h:0,b:0}));
+  FM=$("fm").value;SHOWV=$("sv").checked;FIN=FM==="nonelim"||FM==="bracket"?4:+$("fin").value;FT=FM==="nonelim"?"tourney":$("ft").value;ASQ=[];
+  cast=pool.filter(q=>q.sel).map(q=>({...q,alive:true,w:0,h:0,b:0,pt:0,blk:false}));
+  if(FM==="bracket")[...cast].sort(()=>Math.random()-.5).forEach((q,i)=>q.br=Math.floor(i/6));
+  used=[];lastK="";const k=cast.length;SG=Math.min(FM==="bracket"?pick([9,8]):FM==="swap"?pick([10,9]):pick([10,9,8]),k);if(FM==="swap"&&SG===8)SG=k>8?9:7;SGep=2+Math.floor(Math.random()*8);
   hist=[];ep=0;over=false;$("setup").hidden=true;$("game").hidden=false;nextEp();
 };
 $("go").onclick=()=>{
@@ -137,10 +155,14 @@ $("go").onclick=()=>{
   else if(over){$("game").hidden=true;$("setup").hidden=false;roster()}
   else nextEp();
 };
+const mode=n=>FM==="swap"?(n>8?"as":n===8?"smack":"reg"):FM==="bracket"?(ep<=9?"tb":"reg"):({reg:"reg",allstars:"as",assassin:"asn",nonelim:"ne"})[FM];
 function nextEp(){
-  S=[];idx=0;ep++;epNo=ep;const al=cast.filter(q=>q.alive);
-  S.push(["Remaining queens",`<div class="hero"><div class="big">${al.length} queens remain</div>${cards(al)}</div>`]);
-  al.length<=FIN?finale(al):normal(al);show();
+  S=[];idx=0;ep++;epNo=ep;
+  let al=cast.filter(q=>q.alive);const m=mode(al.length),fin=FM==="nonelim"?ep===12:FM==="bracket"?ep>9&&al.length<=FIN:al.length<=FIN;
+  if(m==="tb")al=al.filter(q=>q.br===Math.floor((ep-1)/3));
+  S.push(["Remaining queens",`<div class="hero"><div class="big">${al.length} queens ${m==="tb"?"in this bracket":"remain"}</div>${cards(al)}</div>`]);
+  if(fin)finale(FM==="nonelim"?[...al].sort((a,b)=>b.pt-a.pt||Math.random()-.5).slice(0,4):al);else normal(al,m);
+  show();
 }
 function show(){
   $("step").textContent=`Episode ${epNo} · ${idx+1} of ${S.length}`;
@@ -154,73 +176,127 @@ function perfScreens(sc,rc,tm){
   if(rc)S.push(["Runway performances",`<div class="hero"><p class="chal">Runway category</p><div class="big">${rc}</div></div>`+groups(sc.map(o=>({q:o.q,l:o.rl})))]);
 }
 function lip(a,b,title,pen,text){
-  const song=pick(SONGS),m=[a,b].map(q=>{const p=q.s.lipsync+bell()*1.3;return{q,l:lv(p),f:p-(pen?LP[Math.min(q.b,4)]:0)}});
+  const song=pick(SONGS),m=[a,b].map(q=>{const p=q.s.lipsync+bell()*1.3;return{q,l:lv(p),f:p+(pen===true?res(q):pen==="soft"?res(q)*.35:0)}});
   const w=m[0].f>=m[1].f?m[0]:m[1],l=m[0]===w?m[1]:m[0];
   S.push([title,`<div class="hero"><p class="chal">Lip sync song</p><div class="song">“${song}”</div><div class="cards">${m.map(o=>card(o.q,o.l)).join("")}</div></div>`]);
-  const body=pen?`<p>${esc(w.q.name)} stays.</p><div class="big">${esc(l.q.name)}</div><p>Sashay away.</p>`+(lvi(l.l)<lvi(w.l)?`<p class="chal">A strong lip sync, but her history in the bottom caught up with her.</p>`:""):`<p>${esc(w.q.name)}</p><div class="big">${text}</div>`;
-  S.push([title+" results",`<div class="hero">${av(pen?l.q:w.q,"lg")}${body}</div>`]);
+  const body=pen===true?`<p>${esc(w.q.name)} stays.</p><div class="big">${esc(l.q.name)}</div><p>Sashay away.</p>`+(lvi(l.l)<lvi(w.l)?`<p class="chal">A strong lip sync, but her history in the bottom caught up with her.</p>`:""):`<p>${esc(w.q.name)}</p><div class="big">${text}</div>`;
+  S.push([title+" results",`<div class="hero">${av(pen===true?l.q:w.q,"lg")}${body}</div>`]);
   return{w:w.q,l:l.q};
 }
-function normal(al){
-  const n=al.length,ch=pick(CH),isT=Math.random()<ch.t,byTeam=isT&&Math.random()<.5;
+function smack(al){
+  S.push(["Lip sync smackdown",`<div class="hero"><div class="big">Lip sync smackdown</div><p>All ${al.length} queens lip sync at once. One queen will be eliminated.</p></div>`]);
+  const song=pick(SONGS),m=al.map(q=>{const p=q.s.lipsync+bell()*1.3;return{q,l:lv(p),f:p+res(q)}}).sort((a,b)=>b.f-a.f);
+  S.push(["Smackdown performances",`<div class="hero"><p class="chal">Lip sync song</p><div class="song">“${song}”</div></div>`+groups(m)]);
+  const out=m[m.length-1].q,rec={ep,k:"Smackdown",place:{},sc:{}};
+  S.push(["Smackdown results",`<div class="hero">${av(out,"lg")}<div class="big">${esc(out.name)}</div><p>Sashay away.</p></div>`]);
+  m.forEach(o=>{rec.place[o.q.name]="SAFE";rec.sc[o.q.name]=o.f});rec.place[m[0].q.name]="WIN";m[0].q.w++;rec.place[out.name]="ELIM";out.alive=false;
+  hist.push(rec);S.push(["Track record",track()]);
+}
+function pickCh(n,m){
+  let k;const noT=c=>!(FM==="nonelim"&&c.k==="Talent");
+  if(FM==="nonelim"&&ep===11)k="Talent";
+  else if(FM==="nonelim"?ep===SGep:n===SG&&m!=="tb")k="Snatch";
+  else{let c=CH.filter(c=>c.k!=="Snatch"&&noT(c)&&!used.includes(c.k));
+    if(!c.length){used=[];c=CH.filter(c=>c.k!=="Snatch"&&noT(c)&&c.k!==lastK)}k=pick(c).k}
+  used.push(k);lastK=k;const t=CH.find(c=>c.k===k);return{...t,...pick(t.subs),ty:t.ty||t.k};
+}
+function normal(al,m){
+  const n=al.length;if(m==="smack")return smack(al);
+  const ch=pickCh(n,m),isT=Math.random()<ch.t,byTeam=isT&&["reg","asn","as"].includes(m)&&Math.random()<.5;
   let TM=[];
   if(isT){const k=ch.k==="Girl Group"?(n>=6&&Math.random()<.4?3:2):(n>=9&&Math.random()<.3?3:2),sh=[...al].sort(()=>Math.random()-.5),nm=[...TN].sort(()=>Math.random()-.5);
     TM=nm.slice(0,k).map(x=>({name:x,m:[],tb:bell()*.7}));sh.forEach((q,i)=>TM[i%k].m.push(q))}
   const tb=q=>{const t=TM.find(t=>t.m.includes(q));return t?t.tb:0};
-  const rc=ch.nr?null:pick(RW),sc=perf(al,ch.s,ch.nr,tb),nH=n>=6?2:1,nL=n>=8?2:n>=5?1:0;
+  const rc=ch.nr?null:ch.cats?ch.cats.join(" · "):pick(RW),sc=perf(al,ch.s,ch.nr,tb),nH=n>=6?2:1,nL=n>=5?1:0;
   TM.forEach(t=>{t.o=sc.filter(o=>t.m.includes(o.q));t.c=avg(t.o.map(o=>o.c))});
-  S.push(["Challenge announcement",`<div class="hero"><div class="big">${ch.n}</div><p>${ch.d}</p><p class="chal">Judged on: ${ch.s.join(", ")}${ch.nr?". No runway this week.":" and the runway."}</p>${isT?`<p>This is a team challenge. ${byTeam?"Each team will be judged as a group.":"The teams work together, but each queen is judged individually."}</p>`:""}</div>`]);
+  S.push(["Challenge announcement",`<div class="hero"><p class="chal">${ch.ty}</p><div class="big">${ch.n}</div><p>${ch.d}</p>${ch.cats?`<p>Categories: ${ch.cats.join(", ")}</p>`:""}<p class="chal">Judged on: ${ch.s.join(", ")}${ch.nr?". No runway this week.":" and the runway."}</p>${isT?`<p>This is a team challenge. ${byTeam?"Each team will be judged as a group.":"The teams work together, but each queen is judged individually."}</p>`:""}${FM==="nonelim"&&ep===11?"<p>This is the talent show. The top 2 earn 3 stars each!</p>":""}</div>`]);
   if(isT)S.push(["Teams announced",TM.map(t=>`<div class="grp"><h3 class="tag pALRIGHT">${t.name}</h3>${cards(t.m)}</div>`).join("")]);
+  if(ch.k==="Snatch"){const cl=[...CELEBS].sort(()=>Math.random()-.5);S.push(["Celebrity impressions",`<div class="cards">${al.map((q,i)=>`<div class="qc">${av(q)}<div class="nm">${esc(q.name)}</div><div class="chal">as ${cl[i]}</div></div>`).join("")}</div>`])}
   perfScreens(sc,rc,byTeam?TM:null);
-  const T=o=>o.sc-WP[Math.min(o.q.w,5)],B=o=>o.sc-BP[Math.min(o.q.b,5)];
-  let W,high=[],low,btm,safe,note="";
+  const T=o=>o.sc-WP[Math.min(o.q.w,5)],B=o=>o.sc-BP[Math.min(o.q.b,5)],byT=l=>[...l].sort((a,b)=>T(b)-T(a));
+  let W=[],high=[],ht=[],low=[],btm=[],safe,t2=[],note="";
   if(byTeam){
     TM.forEach(t=>{t.T=avg(t.o.map(T));t.B=avg(t.o.map(B))});
-    const wt=[...TM].sort((a,b)=>b.T-a.T)[0],lt=TM.filter(t=>t!==wt).sort((a,b)=>a.B-b.B)[0];
-    W=wt.o;const ls=[...lt.o].sort((a,b)=>B(a)-B(b));btm=ls.slice(0,2);low=ls.slice(2);
-    safe=sc.filter(o=>!W.includes(o)&&!lt.o.includes(o));note=`<p class="chal">${wt.name} wins the challenge. ${lt.name} is up for elimination.</p>`;
+    const wt=[...TM].sort((a,b)=>b.T-a.T)[0],lt=TM.filter(t=>t!==wt).sort((a,b)=>a.B-b.B)[0],wo=byT(wt.o),ls=[...lt.o].sort((a,b)=>B(a)-B(b));
+    btm=ls.slice(0,2);low=ls.slice(2,3);
+    if(m==="reg")W=wt.o;else if(m==="asn"){W=[wo[0]];ht=wo.slice(1)}else{t2=wo.slice(0,2);ht=wo.slice(2)}
+    safe=sc.filter(o=>![...W,...t2,...ht,...btm,...low].includes(o));note=`<p class="chal">${wt.name} wins the challenge. ${lt.name} is up for elimination.</p>`;
+  }else if(m==="reg"||m==="asn"){
+    const o=byT(sc),dbl=m==="reg"&&n>=5&&T(o[0])-T(o[1])<.8,nh=nH-(dbl?1:0);
+    W=dbl?[o[0],o[1]]:[o[0]];let rest=sc.filter(x=>!W.includes(x)).sort((a,b)=>B(a)-B(b));
+    btm=rest.slice(0,2);low=rest.slice(2,2+nL);rest=byT(rest.slice(2+nL));high=rest.slice(0,nh);safe=rest.slice(nh);
+    if(dbl)note=`<p class="chal">It's a tie! Two queens share the win.</p>`;
   }else{
-    const win=[...sc].sort((a,b)=>T(b)-T(a))[0];let rest=sc.filter(o=>o!==win).sort((a,b)=>B(a)-B(b));
-    W=[win];btm=rest.slice(0,2);low=rest.slice(2,2+nL);rest=rest.slice(2+nL).sort((a,b)=>T(b)-T(a));high=rest.slice(0,nH);safe=rest.slice(nH);
+    t2=byT(m==="ne"?sc.filter(o=>!o.q.blk):sc).slice(0,2);const rest=sc.filter(o=>!t2.includes(o)).sort((a,b)=>B(a)-B(b));
+    if(m==="as"){btm=rest.slice(0,2);low=rest.slice(2,2+nL);safe=rest.slice(2+nL)}else safe=rest;
+    if(m==="ne"&&al.some(q=>q.blk))note=`<p class="chal">${esc(al.find(q=>q.blk).name)} was blocked and can't earn a star this week.</p>`;
   }
   if(safe.length)S.push(["Safe queens announced",`<div class="hero"><p>These queens are safe.</p>${cards(safe.map(o=>o.q),"SAFE")}</div>`]);
-  const grp=(t,l)=>l.length?`<div class="grp"><h3 class="tag p${t}">${t==="BTM"?"BOTTOM 2":t}</h3>${cards(l.map(o=>o.q))}</div>`:"";
-  S.push(["Challenge results",note+(W.length>1?grp("WIN",W):`<div class="hero">${card(W[0].q,"WIN")}</div>`)+grp("HIGH",high)+grp("LOW",low)+grp("BTM",btm)]);
-  const r=lip(btm[0].q,btm[1].q,"Bottom 2 lip sync",true);
-  const rec={ep,k:ch.k+(isT?" (Team)":""),place:{},sc:{}};
+  const grp=(t,l)=>l.length?`<div class="grp"><h3 class="tag p${t}">${t==="BTM"?"BOTTOM 2":lab(t)}</h3>${cards(l.map(o=>o.q))}</div>`:"";
+  S.push(["Challenge results",note+(W.length>1?grp("WIN",W):W.length?`<div class="hero">${card(W[0].q,"WIN")}</div>`:"")+grp("TOP2",t2)+grp("HIGHTEAM",ht)+grp("HIGH",high)+grp("LOW",low)+grp("BTM",btm)]);
+  const rec={ep,n,k:ch.k+(isT?" (Team)":""),place:{},sc:{},pts:{}},add=(q,p)=>{q.pt+=p;rec.pts[q.name]=(rec.pts[q.name]||0)+p};
+  let elim=null;
+  if(m==="reg")elim=lip(btm[0].q,btm[1].q,"Bottom 2 lip sync",true).l;
+  else if(m==="asn"){
+    const champ=[...W].sort((a,b)=>b.sc-a.sc)[0].q,as=nextAs(),voters=al.filter(q=>q!==champ),tally={};
+    S.push(["Lip sync assassin",`<div class="hero"><p>${esc(champ.name)} won the challenge, so she lip syncs against the assassin.</p>${cards([as])}<p>If the assassin wins, the other queens' votes decide who goes home.</p></div>`]);
+    const votes=voters.map(v=>{const c=voters.filter(q=>q!==v).map(q=>({q,s:thr(q)/7+(100-sc.find(o=>o.q===q).sc)*.5+bell()})).sort((a,b)=>b.s-a.s)[0].q;tally[c.name]=(tally[c.name]||0)+1;return[v,c]});
+    const vt=Object.entries(tally).sort((a,b)=>b[1]-a[1]||Math.random()-.5)[0][0];
+    S.push(["The vote",`<div class="hero"><p>The queens vote before the lip sync. The votes only count if the assassin wins.</p>${SHOWV?votes.map(([v,c])=>`<p>${esc(v.name)} voted for ${esc(c.name)}</p>`).join(""):`<p class="chal">The votes stay secret for now.</p>`}</div>`]);
+    const r=lip(champ,as,"Lip sync vs. the assassin","soft","wins the lip sync!"),won=r.w===champ;
+    elim=won?al.filter(q=>q!==champ).sort((a,b)=>thr(b)-thr(a))[0]:al.find(q=>q.name===vt);
+    S.push(["Elimination",`<div class="hero">${av(elim,"lg")}<p>${won?esc(champ.name)+" chooses to eliminate":"The queens' votes send home"}</p><div class="big">${esc(elim.name)}</div><p>Sashay away.</p></div>`]);
+  }else{
+    const r=lip(t2[0].q,t2[1].q,"Top 2 lip sync","soft","wins the lip sync!");
+    W=[t2.find(o=>o.q===r.w)];t2=t2.filter(o=>o.q!==r.w);
+    if(m==="as"){elim=[...btm].sort((a,b)=>thr(b.q)-thr(a.q))[0].q;
+      S.push(["Elimination",`<div class="hero">${av(elim,"lg")}<p>${esc(r.w.name)} chooses to eliminate</p><div class="big">${esc(elim.name)}</div><p>Sashay away.</p></div>`])}
+    else if(m==="ne"){const s=ep===11?3:1;add(r.w,s);add(r.l,s);
+      const bq=al.filter(q=>q!==r.w).sort((a,b)=>b.pt-a.pt)[0];cast.forEach(q=>q.blk=false);bq.blk=true;
+      S.push(["Block",`<div class="hero">${cards([bq])}<p>${esc(r.w.name)} blocks ${esc(bq.name)}. She can't earn a star next week.</p></div>`])}
+    else{add(r.w,3);add(r.l,2);
+      const gl=safe.map(o=>{const to=pick(al.filter(q=>q!==o.q));add(to,1);return`<p>${esc(o.q.name)} gives her point to ${esc(to.name)}</p>`}).join("");
+      S.push(["Points given away",`<div class="hero"><p>Each safe queen gives her point to another queen in the bracket.</p>${gl}</div>`])}
+  }
   sc.forEach(o=>{rec.place[o.q.name]="SAFE";rec.sc[o.q.name]=o.sc});
-  high.forEach(o=>{rec.place[o.q.name]="HIGH";o.q.h++});low.forEach(o=>rec.place[o.q.name]="LOW");
-  btm.forEach(o=>{rec.place[o.q.name]="BTM";o.q.b++});W.forEach(o=>{rec.place[o.q.name]="WIN";o.q.w++});
-  rec.place[r.l.name]="ELIM";r.l.alive=false;hist.push(rec);
-  S.push(["Track record",track()]);
+  high.forEach(o=>{rec.place[o.q.name]="HIGH";o.q.h++});ht.forEach(o=>{rec.place[o.q.name]="HIGHTEAM";o.q.h++});low.forEach(o=>rec.place[o.q.name]="LOW");
+  btm.forEach(o=>{rec.place[o.q.name]="BTM";o.q.b++});t2.forEach(o=>{rec.place[o.q.name]="TOP2";o.q.h++});W.forEach(o=>{rec.place[o.q.name]="WIN";o.q.w++});
+  if(elim){rec.place[elim.name]="ELIM";elim.alive=false}
+  if(m==="tb"&&ep%3===0){
+    const rk=[...al].sort((a,b)=>b.pt-a.pt||thr(b)-thr(a));rk.slice(3).forEach(q=>{rec.place[q.name]="ELIM";q.alive=false});
+    S.push(["Advancing to the semi finals",`<div class="hero"><p>The three queens with the most points advance.</p>${cards(rk.slice(0,3))}</div>`]);
+  }
+  hist.push(rec);S.push(["Track record",track()]);
 }
 function finale(al){
   const n=al.length,rc="Crown Couture";
-  S.push(["Finale",`<div class="hero"><div class="big">The grand finale</div><p>${FT==="top2"?"The judges will choose two queens to lip sync for the crown.":"The queens lip sync in a tournament for the crown."}</p></div>`]);
+  S.push(["Finale",`<div class="hero"><div class="big">The grand finale</div><p>${FM==="nonelim"?"The four queens with the most stars face off in the lip sync smackdown for the crown.":FT==="top2"?"The judges will choose two queens to lip sync for the crown.":"The queens lip sync in a tournament for the crown."}</p></div>`]);
   const sc=perf(al,["dance","singing","comedy","acting"]);perfScreens(sc,rc);
   sc.forEach(o=>o.f=o.sc+o.q.w*3+o.q.h*1.2-o.q.b*1.5+bell());sc.sort((a,b)=>b.f-a.f);
   const rec={ep,k:"Finale",place:{},sc:{}};let r;
   if(FT==="top2"){
     S.push(["Finalists chosen",`<div class="hero"><p>The judges choose two queens.</p>${cards(sc.slice(0,2).map(o=>o.q))}</div>`]);
-    r=lip(sc[0].q,sc[1].q,"Lip sync for the crown",false,"wins the crown!");
-    sc.slice(2).forEach((o,i)=>rec.place[o.q.name]=i?"4TH":"3RD");
+    r=lip(sc[0].q,sc[1].q,"Lip sync for the crown","soft","wins the crown!");
+    sc.slice(2).forEach((o,i)=>rec.place[o.q.name]=["3RD","4TH","5TH"][i]);
   }else{
-    let a,b;
-    if(n===4){const p=[...sc].sort(()=>Math.random()-.5);a=lip(p[0].q,p[1].q,"Semifinal 1",false,"advances!");b=lip(p[2].q,p[3].q,"Semifinal 2",false,"advances!");
-      [a.l,b.l].forEach(q=>rec.place[q.name]="3RD");r=lip(a.w,b.w,"Lip sync for the crown",false,"wins the crown!");}
-    else{a=lip(sc[1].q,sc[2].q,"Semifinal",false,"advances to face the top seed!");rec.place[a.l.name]="3RD";r=lip(a.w,sc[0].q,"Lip sync for the crown",false,"wins the crown!");}
+    let pl=sc.map(o=>o.q),a,b;
+    if(n===5){const p=lip(pl[3],pl[4],"Play-in lip sync","soft","advances!");rec.place[p.l.name]="5TH";pl=[pl[0],pl[1],pl[2],p.w]}
+    if(pl.length===4){const p=[...pl].sort(()=>Math.random()-.5);a=lip(p[0],p[1],"Semifinal 1","soft","advances!");b=lip(p[2],p[3],"Semifinal 2","soft","advances!");
+      [a.l,b.l].forEach(q=>rec.place[q.name]="3RD");r=lip(a.w,b.w,"Lip sync for the crown","soft","wins the crown!")}
+    else{a=lip(pl[1],pl[2],"Semifinal","soft","advances to face the top seed!");rec.place[a.l.name]="3RD";r=lip(a.w,pl[0],"Lip sync for the crown","soft","wins the crown!")}
   }
   rec.place[r.w.name]="WINNER";rec.place[r.l.name]="RUNNER";sc.forEach(o=>rec.sc[o.q.name]=o.f);hist.push(rec);over=true;
   S.push(["Your winner",`<div class="hero">${av(r.w,"lg")}<div class="big">${esc(r.w.name)}</div><p>is the winner of the season. Runner-up: ${esc(r.l.name)}.</p></div>`]);
   S.push(["Track record",track()]);
 }
 function track(){
-  const last=hist[hist.length-1],R={WINNER:0,WIN:0,HIGH:1,RUNNER:1,SAFE:2,LOW:3,"3RD":3,BTM:4,"4TH":4,ELIM:5};
+  const last=hist[hist.length-1],R={WINNER:0,WIN:0,HIGH:1,HIGHTEAM:1,TOP2:1,RUNNER:1,SAFE:2,LOW:3,"3RD":3,BTM:4,"4TH":4,"5TH":4,ELIM:5};
+  const PT=FM==="nonelim"||FM==="bracket",PTM=(FM==="nonelim"&&last.k!=="Finale")||(FM==="bracket"&&last.ep<=9);
   const el=q=>{for(let i=hist.length-1;i>=0;i--)if(hist[i].place[q.name]==="ELIM")return i;return -1};
   const rk=q=>last.place[q.name]?R[last.place[q.name]]:10+hist.length-el(q);
-  const rows=[...cast].sort((a,b)=>rk(a)-rk(b)||(last.sc[b.name]||0)-(last.sc[a.name]||0));
-  return`<div class="scroll"><table><thead><tr><th></th>${hist.map(r=>`<th>Ep ${r.ep}<br><small>${r.k}</small></th>`).join("")}</tr></thead><tbody>`+
-  rows.map(q=>`<tr><td class="n">${av(q,"sm")}${esc(q.name)}</td>${hist.map(r=>{const p=r.place[q.name];return`<td class="c ${p?"p"+p:""}">${p||""}</td>`}).join("")}</tr>`).join("")+"</tbody></table></div>";
+  const rows=PTM?[...cast].sort((a,b)=>b.alive-a.alive||(a.alive?b.pt-a.pt:el(b)-el(a))):[...cast].sort((a,b)=>rk(a)-rk(b)||(last.sc[b.name]||0)-(last.sc[a.name]||0)||b.pt-a.pt);
+  return`<div class="scroll"><table><thead><tr><th></th>${hist.map(r=>`<th>Ep ${r.ep}<br><small>${r.k}</small></th>`).join("")}${PT?"<th>Total</th>":""}</tr></thead><tbody>`+
+  rows.map(q=>`<tr><td class="n">${av(q,"sm")}${esc(q.name)}</td>${hist.map(r=>{const p=r.place[q.name],x=r.pts&&r.pts[q.name];return`<td class="c ${p?"p"+p:""}">${p?lab(p):""}${x?" +"+x:""}</td>`}).join("")}${PT?`<td class="c">${q.pt}</td>`:""}</tr>`).join("")+"</tbody></table></div>";
 }
 roster();
 </script>
