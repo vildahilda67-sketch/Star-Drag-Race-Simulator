@@ -97,28 +97,20 @@ const WP=[0,3,7,14,24,40],BP=[0,4,10,20,35,50],LP=[0,8,24,75,120],WB=[0,8,28,60,
    Each queen has a name, an image link (a full URL or a path like "images/anita.png"), and stats from 0 to 100.
    Leave img as "" to show her initials. Edit, delete or add queens freely. */
 const QUEENS=[
-{name:"Bebe Zahara Benet",img:"https://i.pinimg.com/736x/71/0d/fb/710dfbd1defcf1e742d84945dc0f96d7.jpg",s:{comedy:3.75,acting:3.5,design:3.5,dance:4,singing:4,runway:3.5,lipsync:4}},
-{name:"Betty Bonbon",img:"",s:{comedy:94,acting:85,design:50,dance:45,singing:60,runway:58,lipsync:52}},
-{name:"Crystal Clearance",img:"",s:{comedy:55,acting:60,design:92,dance:58,singing:45,runway:95,lipsync:68}},
-{name:"Dolly Voltage",img:"",s:{comedy:62,acting:70,design:60,dance:95,singing:72,runway:78,lipsync:93}},
-{name:"Electra Fyin",img:"",s:{comedy:70,acting:90,design:65,dance:55,singing:80,runway:70,lipsync:60}},
-{name:"Fauna Fatale",img:"",s:{comedy:48,acting:66,design:85,dance:62,singing:52,runway:90,lipsync:70}},
-{name:"Gigi Gilded",img:"",s:{comedy:60,acting:55,design:70,dance:80,singing:90,runway:85,lipsync:82}},
-{name:"Hazel Nutz",img:"",s:{comedy:96,acting:78,design:42,dance:50,singing:55,runway:45,lipsync:58}},
-{name:"Iris Eclipse",img:"",s:{comedy:52,acting:82,design:75,dance:65,singing:70,runway:76,lipsync:66}},
-{name:"Jade Rouge",img:"",s:{comedy:66,acting:58,design:62,dance:88,singing:64,runway:72,lipsync:90}},
-{name:"Kandy Kane Kong",img:"",s:{comedy:84,acting:72,design:68,dance:60,singing:76,runway:64,lipsync:62}},
-{name:"Lola Lollipop",img:"",s:{comedy:58,acting:50,design:78,dance:72,singing:85,runway:80,lipsync:76}},
-{name:"Mona Lisa Mayhem",img:"",s:{comedy:76,acting:92,design:58,dance:52,singing:62,runway:66,lipsync:48}},
-{name:"Nova Nightshade",img:"",s:{comedy:45,acting:64,design:90,dance:70,singing:58,runway:92,lipsync:84}},
-{name:"Opal Illusion",img:"",s:{comedy:68,acting:60,design:54,dance:66,singing:94,runway:60,lipsync:72}},
-{name:"Peaches Parfait",img:"",s:{comedy:80,acting:68,design:72,dance:85,singing:50,runway:68,lipsync:86}},
-{name:"Quinn Quartz",img:"",s:{comedy:72,acting:74,design:66,dance:58,singing:68,runway:74,lipsync:64}},
-{name:"Raven Rhinestone",img:"",s:{comedy:50,acting:70,design:80,dance:76,singing:56,runway:86,lipsync:80}},
-{name:"Sasha Sapphire",img:"",s:{comedy:64,acting:56,design:60,dance:90,singing:74,runway:62,lipsync:88}},
-{name:"Tia Tinsel",img:"",s:{comedy:90,acting:66,design:52,dance:64,singing:70,runway:56,lipsync:56}}
+{name:"Bebe Zahara Benet",img:"https://i.pinimg.com/736x/a5/9a/e2/a59ae2d019265c10b1e9083c64eb90d9.jpg",s:{comedy:3.75,acting:3.5,design:3.5,dance:4,singing:4,runway:3.5,lipsync:4}},
+{name:"Nina Flowers",img:"https://i.pinimg.com/736x/76/63/5b/76635be08655db2cb9d8d75ea38f9a53.jpg",s:{comedy:3,acting:3.67,design:3.67,dance:4,singing:4,runway:3.67,lipsync:2.5}},
+{name:"Rebecca GLasscock",img:"https://i.pinimg.com/736x/ef/db/db/efdbdba64273553d6450924ce82b830f.jpg",s:{comedy:2.5,acting:2.5,design:2.67,dance:4,singing:4,runway:2.67,lipsync:4.67}},
+{name:"Shannel",img:"https://i.pinimg.com/736x/a4/97/57/a49757c382269b57b3180f823a8f931d.jpg",s:{comedy:3.43,acting:2.67,design:3.63,dance:3.5,singing:3.5,runway:3.63,lipsync:3.9}},
+{name:"Ongina",img:"https://i.pinimg.com/736x/a4/97/57/a49757c382269b57b3180f823a8f931d.jpg",s:{comedy:4.5,acting:4.5,design:2.5,dance:3,singing:3,runway:2.5,lipsync:2.33}},
+{name:"Jade",img:"https://i.pinimg.com/736x/9e/2e/b0/9e2eb0942fb3fb16542da4258b1dca9a.jpg",s:{comedy:1.5,acting:1.5,design:3,dance:3,singing:3,runway:3,lipsync:2}},
+{name:"Akashia",img:"https://i.pinimg.com/736x/cf/35/a5/cf35a5dc1bd6a40354e574b6250f2280.jpg",s:{comedy:1,acting:1,design:1,dance:1,singing:1,runway:1,lipsync:3}},
+{name:"Tammie Brown",img:"https://i.pinimg.com/736x/c5/0e/5f/c50e5ff3aa9c7bccf8a432d59bcde0ea.jpg",s:{comedy:1,acting:3,design:3,dance:1,singing:1,runway:3,lipsync:1}},
+{name:"Victoria Porkchop Parker",img:"https://i.pinimg.com/736x/77/07/59/770759c8a0b6675eb03c944f5bf01601.jpg",s:{comedy:0,acting:0,design:1,dance:0,singing:0,runway:1,lipsync:1}},
+{name:"Template",img:"",s:{comedy:1,acting:1,design:1,dance:1,singing:1,runway:1,lipsync:1}},
 ];
-let pool=QUEENS.map(q=>({...q,sel:false}));pool.slice(0,12).forEach(q=>q.sel=true);
+/* Stats of 5 or less are treated as a 1-5 scale and converted (1 -> 35, 3 -> 65, 5 -> 95). Decimals like 4.5 work. */
+const norm=s=>Math.max(...Object.values(s))<=5?Object.fromEntries(Object.entries(s).map(([k,v])=>[k,20+15*v])):s;
+let pool=QUEENS.map(q=>({...q,s:norm(q.s),sel:false}));pool.slice(0,12).forEach(q=>q.sel=true);
 let cast,hist,S,idx,ep,over,FIN,FT,epNo,FM,SHOWV,ASQ=[],used=[],lastK="",SG=0,SGep=0;
 const lab=p=>({TOP2:"TOP 2",HIGHTEAM:"HIGH TEAM"})[p]||p,thr=q=>avg(STATS.map(k=>q.s[k])),nextAs=()=>{if(!ASQ.length)ASQ=pool.filter(q=>!q.sel).sort(()=>Math.random()-.5);return ASQ.pop()};
 
